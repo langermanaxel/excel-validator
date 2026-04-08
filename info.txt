@@ -1,0 +1,121 @@
+# 🚀 Excel Validator API
+
+## 📌 Descripción
+
+Desarrollé una API en Python orientada a validar archivos Excel y CSV antes de ejecutar procesos automatizados contables.
+
+La idea surge porque detecté que el principal punto de falla en este tipo de soluciones es el input manual, lo que genera errores, reprocesos y pérdida de tiempo.
+
+---
+
+## 🧠 Arquitectura
+
+Diseñé una arquitectura desacoplada utilizando **FastAPI**, donde la API recibe los archivos y delega el procesamiento a un worker asíncrono mediante **Celery** y **Redis**.
+
+Esto permite:
+- Procesar múltiples validaciones en paralelo  
+- Evitar bloqueos en la API  
+- Escalar horizontalmente agregando workers  
+
+---
+
+## 🏗️ Diseño del sistema
+
+La lógica está separada por capas:
+
+- **API** → manejo de requests/responses  
+- **Servicios** → lógica de negocio  
+- **Dominio** → reglas y validaciones  
+
+Se aplican principios:
+- ✔ SOLID  
+- ✔ Responsabilidad única  
+- ✔ Código desacoplado  
+
+Ejemplo de separación:
+- Lectura de archivos  
+- Validación de datos  
+- Generación de reportes  
+
+---
+
+## ⚙️ Funcionalidades principales
+
+- ✔ Validación de archivos CSV y Excel  
+- ✔ Validación de CUIT (algoritmo oficial)  
+- ✔ Validación de email  
+- ✔ Campos obligatorios por proceso  
+- ✔ Reglas configurables por cliente (**multi-tenant**)  
+- ✔ Generación de reportes descargables  
+- ✔ Persistencia de logs para trazabilidad  
+
+---
+
+## 🧩 Multi-tenant
+
+Implementé un sistema de reglas configurables por cliente y proceso.
+
+Esto permite:
+- Adaptar validaciones sin modificar el código  
+- Evitar redeploys  
+- Escalar a múltiples clientes  
+
+---
+
+## 🔐 Configuración
+
+Externalicé la configuración usando variables de entorno con `pydantic-settings`:
+
+- Evita hardcodear valores sensibles  
+- Facilita cambios entre entornos (dev/prod)  
+- Permite validación tipada  
+
+Además, utilicé un patrón **singleton con caching** para evitar múltiples instancias de configuración.
+
+---
+
+## 📦 Buenas prácticas
+
+- ✔ Versionado de dependencias en `requirements.txt`  
+- ✔ Código tipado (`typing`)  
+- ✔ Manejo de errores consistente  
+- ✔ Comentarios enfocados en decisiones de diseño  
+- ✔ Código preparado para testing  
+
+---
+
+## 🛠️ Problemas resueltos
+
+Durante el desarrollo resolví problemas reales como:
+
+- Configuración del **result backend de Celery** para consultar estado de tareas  
+- Inicialización correcta de Celery para evitar errores con `AsyncResult`  
+- Manejo de serialización de datos entre API y worker  
+
+---
+
+## 🚀 Escalabilidad y mejoras futuras
+
+El sistema está preparado para escalar horizontalmente agregando workers.
+
+### Mejoras propuestas:
+
+- 🔹 Migrar SQLite → PostgreSQL (mejor concurrencia)  
+- 🔹 Almacenamiento de reportes en S3  
+- 🔹 Procesamiento por chunks o streaming para grandes volúmenes  
+- 🔹 Versionado dinámico de reglas en base de datos  
+- 🔹 Sistema de validaciones extensible (plugin/strategy pattern)  
+- 🔹 Observabilidad (métricas + logs estructurados)  
+- 🔹 Autenticación y control de acceso  
+
+---
+
+## 🎯 Conclusión
+
+Este diseño permite implementar un sistema **multi-tenant sin modificar el core**, logrando una solución:
+
+- Escalable  
+- Flexible  
+- Mantenible  
+
+Ideal para automatizar procesos administrativos y reducir errores en la carga de datos.

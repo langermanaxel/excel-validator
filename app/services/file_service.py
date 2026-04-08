@@ -38,14 +38,14 @@ def read_file(file: UploadFile) -> pd.DataFrame:
     # Se utiliza pandas.read_csv para convertir el archivo
     # en un DataFrame (estructura tabular)
     if filename.endswith(".csv"):
-        return pd.read_csv(file.file)
+        return pd.read_csv(file.file, dtype=str)
 
     # -----------------------------------------------------
     # 📊 Lectura de archivos Excel
     # -----------------------------------------------------
     # Se utiliza pandas.read_excel para archivos .xlsx
     if filename.endswith(".xlsx"):
-        return pd.read_excel(file.file)
+        return pd.read_excel(file.file, dtype=str)
 
     # -----------------------------------------------------
     # ❌ Validación de formato

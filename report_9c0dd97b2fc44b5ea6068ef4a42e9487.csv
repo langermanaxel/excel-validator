@@ -1,0 +1,12 @@
+row,field,message
+3,cuit,CUIT inválido
+4,cuit,CUIT inválido
+5,cuit,CUIT inválido
+5,email,Email inválido
+6,email,Email inválido
+7,cuit,Campo obligatorio faltante
+8,email,Campo obligatorio faltante
+9,cuit,CUIT inválido
+9,email,Email inválido
+10,monto,Campo obligatorio faltante
+10,cuit,CUIT inválido

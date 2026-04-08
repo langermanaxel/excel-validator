@@ -5,24 +5,13 @@ from app.domain.rules import get_required_fields
 
 
 # =========================================================
-# 📌 Servicio de validación de DataFrame
+# 📌 Servicio de validación de DataFrame (robusto)
 # =========================================================
-# Esta función es el núcleo del sistema de validación.
-# Se encarga de aplicar reglas dinámicas y validaciones
-# de negocio sobre los datos cargados desde un archivo.
-#
-# Decisiones de diseño:
-# - Se separa en la capa de servicios (no en la API)
-# - Cumple con el principio de responsabilidad única (SRP)
-# - Desacopla reglas (rules.py) y validaciones (validators.py)
-#
-# Parámetros:
-# - df: DataFrame con los datos a validar
-# - process: tipo de proceso (ej: iva, facturación)
-# - client_id: identificador del cliente (multi-tenant)
-#
-# Retorna:
-# - Lista de errores encontrados (estructura uniforme)
+# Mejora clave:
+# - Manejo de NaN (pandas)
+# - Normalización de datos
+# - Evita errores por tipos incorrectos (float, None, etc.)
+# - Más seguro para datos reales (inputs sucios)
 # =========================================================
 def validate_dataframe(
     df: pd.DataFrame,
@@ -30,32 +19,28 @@ def validate_dataframe(
     client_id: str
 ) -> List[Dict[str, Any]]:
 
-    # Lista donde se acumulan los errores encontrados
     errors: List[Dict[str, Any]] = []
 
     # -----------------------------------------------------
-    # 📌 Obtención de reglas dinámicas
+    # 📌 Reglas dinámicas por cliente/proceso
     # -----------------------------------------------------
-    # Se obtienen los campos obligatorios según cliente y proceso
-    # Esto permite que el sistema sea configurable y escalable
     required_fields = get_required_fields(client_id, process)
 
     # -----------------------------------------------------
-    # 🔁 Iteración por filas del DataFrame
+    # 🔁 Iteración por filas
     # -----------------------------------------------------
     for index, row in df.iterrows():
 
-        # Ajustamos el número de fila para que coincida con Excel
-        # (index empieza en 0, Excel en 1 + header)
-        row_number = index + 2
+        row_number = index + 2  # Ajuste por header Excel
 
         # -------------------------------------------------
         # 📌 Validación de campos obligatorios
         # -------------------------------------------------
         for field in required_fields:
+            value = row.get(field)
 
-            # pd.isna detecta valores nulos, vacíos o NaN
-            if pd.isna(row.get(field)):
+            # Detecta NaN, None o vacío
+            if pd.isna(value) or str(value).strip() == "":
                 errors.append({
                     "row": row_number,
                     "field": field,
@@ -63,25 +48,33 @@ def validate_dataframe(
                 })
 
         # -------------------------------------------------
-        # 📌 Validaciones de negocio específicas
+        # 📌 Normalización de datos
         # -------------------------------------------------
+        cuit = row.get("cuit")
+        email = row.get("email")
 
-        # Validación de CUIT
-        # Se convierte a string para evitar problemas de tipo (ej: float)
-        if "cuit" in row and not validate_cuit(str(row.get("cuit"))):
+        # Convertimos a string SOLO si no es NaN
+        cuit_str = str(cuit).strip() if not pd.isna(cuit) else None
+        email_str = str(email).strip() if not pd.isna(email) else None
+
+        # -------------------------------------------------
+        # 📌 Validación de CUIT
+        # -------------------------------------------------
+        if cuit_str and not validate_cuit(cuit_str):
             errors.append({
                 "row": row_number,
                 "field": "cuit",
                 "message": "CUIT inválido"
             })
 
-        # Validación de email
-        if "email" in row and not validate_email(row.get("email")):
+        # -------------------------------------------------
+        # 📌 Validación de email
+        # -------------------------------------------------
+        if email_str and not validate_email(email_str):
             errors.append({
                 "row": row_number,
                 "field": "email",
                 "message": "Email inválido"
             })
 
-    # Retornamos todos los errores encontrados
     return errors
